@@ -26,30 +26,9 @@ app.configure 'production', ->
 
 app.get '/', (req, res) ->
 
-# Start server
-unless module.parent
-  app.listen 8000
-  console.log "Express server listening on port %d", 8000
+# Share HTTP server between Express and Socket.IO
+server = http.createServer app
+socketio.listen server
 
-module.exports = app
-###
-
-# Tile types
-TILES =
-  air  : 0
-  dirt : 10
-
-# Load map file, create a new map if it doesn't exist
-if fs.existsSync 'world.dat'
-  map = fs.readFileSync 'world.dat'
-else
-  map = new Buffer 640 * 4000
-  map.fill TILES.air
-
-map[1] = TILES.dirt
-
-# Compress map data.
-# Gets us around n_blocks + 3000 bytes (2560000 -> 13790 for 10.000 blocks)
-zipped = zlib.gzip map, (err, res) ->
-  console.log res.length
-
+server.listen 8000
+console.log "Express server listening on port %d", 8000
