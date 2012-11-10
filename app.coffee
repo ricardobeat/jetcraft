@@ -4,11 +4,11 @@
 express  = require 'express'
 zlib     = require 'zlib'
 fs       = require 'fs'
+socketio = require 'socket.io'
 
 # Express app
 # -----------
-###
-app = express.createServer()
+app = express()
 
 app.configure ->
   app.set 'views', "#{__dirname}/views"
