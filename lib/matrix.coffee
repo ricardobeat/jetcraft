@@ -1,3 +1,7 @@
+# Dependencies
+# ------------
+fs = require 'fs'
+
 # Tile types
 TILES =
   air  : 0
@@ -41,4 +45,5 @@ compact = (arr, codes) ->
 
   return output
 
-console.log compact map, TILE_CODES
+module.exports =
+  getmap: -> compact map, TILE_CODES

@@ -3,7 +3,9 @@
 {Buffer} = require 'buffer'
 express  = require 'express'
 zlib     = require 'zlib'
+http     = require 'http'
 fs       = require 'fs'
+cons     = require 'consolidate'
 socketio = require 'socket.io'
 
 # Express app
@@ -12,7 +14,8 @@ app = express()
 
 app.configure ->
   app.set 'views', "#{__dirname}/views"
-  app.set 'view engine', 'kiwi'
+  app.set 'view engine', 'html'
+  app.engine 'html', cons.underscore
   app.use express.bodyParser()
   app.use express.methodOverride()
   app.use app.router
@@ -25,10 +28,20 @@ app.configure 'production', ->
   app.use express.errorHandler()
 
 app.get '/', (req, res) ->
+  res.render 'index', {}
 
 # Share HTTP server between Express and Socket.IO
 server = http.createServer app
-socketio.listen server
+io = socketio.listen server
 
 server.listen 8000
 console.log "Express server listening on port %d", 8000
+
+# Game server
+# -----------
+matrix = require './lib/matrix'
+
+# Sockets
+# -------
+io.sockets.on 'connection', (socket) ->
+  socket.emit 'world', { map: matrix.getmap() }
