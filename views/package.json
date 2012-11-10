@@ -1,7 +1,6 @@
 {
-  "name": "nko3-the-entire-russian-a",
+  "name": "nko3",
   "version": "0.1.0",
-  "description": "The entire Russian army",
   "main": "app.coffee",
   "directories": {
     "test": "test"
@@ -17,9 +16,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:nko3/the-entire-russian-a.git"
+    "url": "git://github.com/nko3/the-entire-russian-a.git"
   },
   "author": "Ricardo Tomasi",
   "license": "None",
-  "subdomain": "the-entire-russian-a.nko3"
+  "description": ""
 }
