@@ -45,6 +45,7 @@ class GameEngine
         @createCanvas root
         @iter = 0
         @players = []
+        @scrollX = 0
 
     createCanvas: (root) ->
         @canvas = document.createElement 'canvas'
@@ -82,8 +83,8 @@ class GameEngine
             col  = Math.floor i / 30
             row = i % 30
             # Draw blocks like a grid
-            x = col * @blockSize
-            y = row * @blockSize
+            x = col * @blockSize | 0
+            y = row * @blockSize | 0
             size = @blockSize
             if tile isnt currentBlockType
                 currentBlockType = tile
@@ -92,11 +93,13 @@ class GameEngine
                     when 10 then '#66cc44'
 
 
-            @ctx.fillRect x, y, size, size
+            @ctx.fillRect x - @scrollX, y, size, size
         for p in @players
             size = @blockSize
             @ctx.fillStyle = '#ddd'
-            @ctx.fillRect p.X, p.Y, size, size
+            @ctx.fillRect p.X - @scrollX, p.Y, size, size
+            if p.myCharacter and p.X >= @canvas.width / 2 
+                @scrollX = p.X - @canvas.width / 2
         return
 
     newPlayer: (player) =>
@@ -167,13 +170,12 @@ class Player
             @gravity = 0 #shut down gravity if we have floor
 
         if @falling
-            console.log @speedY
-            @speedY += @gravity if @speedY <= @gravityLimit
+            @speedY += @gravity if @speedY < @gravityLimit
 
         if not @jumping and @speedX != 0
             @speedX = @speedX * @attrition
 
-        @hasFloor = false
+        #@hasFloor = false
 
     bindKeys:=>
         km = @keysMap
@@ -189,8 +191,8 @@ class Player
         @movingleft = keydown
             
     jump: (keydown)=>
-        @gravity = @defaultGravity
         @jumping = keydown
+        @gravity = @defaultGravity
 
 player = new Player
 player.myCharacter = true
