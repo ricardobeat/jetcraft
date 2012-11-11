@@ -46,7 +46,8 @@ matrix = require './lib/matrix'
 io.sockets.on 'connection', (socket) ->
 
   # Send full map to client on connection
-  socket.emit 'world', { map: matrix.getMap() }
+  socket.on 'loadWorld', ->
+    socket.emit 'world', { map: matrix.getMap() }
 
   socket.on 'put', (data) ->
     matrix.put 0

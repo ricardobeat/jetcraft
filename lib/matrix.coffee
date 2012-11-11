@@ -20,9 +20,19 @@ else
   mapSize = 30 * 600
   map = new Buffer mapSize
   map.fill TILES.air
-  map.slice(Math.floor mapSize/2, mapSize).fill TILES.dirt
 
-map[1] = TILES.dirt
+  floor_height = 20
+  for i in [0..600-30]
+    pos = 30*i
+    
+    floor_height = floor_height + (-1 + Math.round Math.random() * 2)
+    if floor_height < 10
+      floor_height += 2
+    else if floor_height > 20
+      floor_height -= 2
+
+    map.slice(pos+floor_height, pos+30).fill TILES.dirt
+  console.log 'Generated new map'
 
 # Compress map data.
 # Gets us around n_blocks + 3000 bytes (2560000 -> 13790 for 10.000 blocks)

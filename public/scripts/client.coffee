@@ -32,17 +32,6 @@ expand = (arr) ->
 
     return output
 
-# Sockets
-# -------
-window.socket = io.connect()
-
-socket.on 'world', (data) ->
-    console.log data
-    #console.log expand data.map
-
-socket.on 'update', (data) ->
-    console.log data
-
 # Game engine
 # -----------
 
@@ -61,10 +50,15 @@ class GameEngine
         @canvas.height = h
         @ctx = @canvas.getContext '2d'
         root.appendChild @canvas
+        @calculateSizes()
+
+    calculateSizes: ->
+        @blockSize = Math.ceil @canvas.height / 30
+        console.log "Blocks are #{@blockSize}px wide"
 
     run: =>
         @iter++
-        @animation_id = requestAnimationFrame Game.run
+        @animation_id = requestAnimationFrame @run
         @update()
         @draw()
         if @iter is 2 then @stop()
@@ -73,12 +67,38 @@ class GameEngine
         cancelAnimationFrame @animation_id
 
     update: ->
-        console.log 'Update', @iter
 
     draw: ->
-        console.log 'Draw', @iter
+        currentBlockType = null
+        for tile, i in @map
+            row  = Math.floor i / 30
+            line = i % 30
+            # Draw blocks like a grid
+            x = row * @blockSize
+            y = line * @blockSize
+            size = @blockSize
+            if tile isnt currentBlockType
+                currentBlockType = tile
+                @ctx.fillStyle = switch tile
+                    when 0  then '#eeeeff'
+                    when 10 then '#66cc44'
+
+
+            @ctx.fillRect x, y, size, size
+        return
 
 Game = new GameEngine
 
-window.addEventListener 'load', Game.run
+# Sockets
+# -------
+window.socket = io.connect()
 
+socket.on 'world', (data) ->
+    console.log data
+    Game.map = expand data.map
+    Game.run()
+
+socket.on 'update', (data) ->
+    console.log data
+
+socket.emit 'loadWorld'
