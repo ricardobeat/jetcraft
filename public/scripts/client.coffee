@@ -250,7 +250,7 @@ Game.canvas.addEventListener 'click', (e) ->
     x = e.pageX
     y = e.pageY
 
-    distance = Math.sqrt Math.pow(x - player.x, 2) + Math.pow(y - player.y, 2)
+    distance = Math.sqrt Math.pow(x + Game.scrollX - player.x, 2) + Math.pow(y - player.y, 2)
 
     return if distance > Game.blockSize * 4
 
