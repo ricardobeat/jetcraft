@@ -49,8 +49,11 @@ io.sockets.on 'connection', (socket) ->
   socket.on 'loadWorld', ->
     socket.emit 'world', { map: matrix.getMap() }
 
-  socket.on 'put', (data) ->
-    matrix.put 0
+  socket.on 'put', (block) ->
+    matrix.put block
+
+  socket.on 'del', (block) ->
+    matrix.del block
 
 matrix.on 'change', (data) ->
   io.sockets.emit 'update', data

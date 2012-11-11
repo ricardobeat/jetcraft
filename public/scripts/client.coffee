@@ -13,6 +13,10 @@ unless window.requestAnimationFrame?
     window.cancelAnimationFrame = (id) ->
         clearTimeout id
 
+TILES =
+  air  : 0
+  dirt : 10
+
 # Tile codes for inflating map data.
 TILE_CODES =
     A: 0
@@ -71,11 +75,11 @@ class GameEngine
     draw: ->
         currentBlockType = null
         for tile, i in @map
-            row  = Math.floor i / 30
-            line = i % 30
+            col  = Math.floor i / 30
+            row = i % 30
             # Draw blocks like a grid
-            x = row * @blockSize
-            y = line * @blockSize
+            x = col * @blockSize
+            y = row * @blockSize
             size = @blockSize
             if tile isnt currentBlockType
                 currentBlockType = tile
@@ -104,3 +108,22 @@ socket.on 'update', (data) ->
     Game.draw()
 
 socket.emit 'loadWorld'
+
+# Player controls
+# ---------------
+
+pixelToBlock = (x, y) ->
+    col = Math.floor x / Game.blockSize
+    row = Math.floor y / Game.blockSize
+    return { col, row }
+
+Game.canvas.addEventListener 'click', (e) ->
+    coords = pixelToBlock e.pageX, e.pageY
+    block = (coords.col * 30) + coords.row
+    if Game.map[block] is TILES.air
+        socket.emit 'put', block
+        console.log 'Adding block @#{coords}, #{block}'
+    else
+        socket.emit 'del', block
+        console.log 'Removing block @#{coords}, #{block}'
+    

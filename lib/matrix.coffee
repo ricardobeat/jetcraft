@@ -40,7 +40,6 @@ else
 #  console.log res.toString('hex')
 
 compact = (arr, codes) ->
-
   current = null
   count   = 0
   output  = ''
@@ -57,14 +56,25 @@ compact = (arr, codes) ->
 
   return output
 
+changeBlock = (block, type) ->
+  changes = {}
+  changes[block] = map[block] = type
+  return changes
+
 # Expose API
 matrix = new EventEmitter
 
 _.extend matrix, 
-  getMap: -> compact map, TILE_CODES
-  put: -> matrix.emit 'change', { test: 1 }
+  getMap: ->
+    compact map, TILE_CODES
 
-# Test for server updates
+  put: (block) ->
+    matrix.emit 'change', changeBlock block, TILES.dirt
+
+  del: (block) ->
+    matrix.emit 'change', changeBlock block, TILES.air
+
+### Test for server updates
 floating_rows = (Math.floor Math.random() * 100 for i in [0..50])
 
 setInterval ->
@@ -81,6 +91,11 @@ setInterval ->
     changes[cur-1] = map[cur-1] = TILES.dirt
 
     matrix.emit 'change', changes
-, 60
+, 100
+###
 
 module.exports = matrix
+
+### TODO
+
+- receber updates só do que está no viewport
