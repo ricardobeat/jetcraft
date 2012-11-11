@@ -33,6 +33,7 @@ app.get '/', (req, res) ->
 # Share HTTP server between Express and Socket.IO
 server = http.createServer app
 io = socketio.listen server
+io.set 'log level', 2
 
 server.listen 8000
 console.log "Express server listening on port %d", 8000
