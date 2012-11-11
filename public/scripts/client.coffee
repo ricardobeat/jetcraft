@@ -26,8 +26,6 @@ TILE_CODES =
 expand = (arr) ->
     output = []
 
-    console.log arr
-
     arr.replace /\w\d+/g, (m) ->
         block_type = m[0]
         count = m.slice(1)
@@ -67,7 +65,6 @@ class GameEngine
         @animation_id = requestAnimationFrame @run
         @update()
         @draw()
-        #if @iter is 2 then @stop()
 
     stop: =>
         cancelAnimationFrame @animation_id
@@ -79,34 +76,34 @@ class GameEngine
 
     draw: ->
         currentBlockType = null
+
         for tile, i in @map
             col  = Math.floor i / 30
             row = i % 30
             # Draw blocks like a grid
-            x = col * @blockSize | 0
-            y = row * @blockSize | 0
             size = @blockSize
+            x = col * size
+            y = row * size
             if tile isnt currentBlockType
                 currentBlockType = tile
                 @ctx.fillStyle = switch tile
                     when 0  then '#eeeeff'
                     when 10 then '#66cc44'
 
-
             @ctx.fillRect x - @scrollX, y, size, size
+
         for p in @players
             size = @blockSize
             @ctx.fillStyle = '#ddd'
-            @ctx.fillRect p.X - @scrollX, p.Y, size, size
-            if p.myCharacter and p.X >= @canvas.width / 2 
-                @scrollX = p.X - @canvas.width / 2
+            @ctx.fillRect p.x - @scrollX, p.y, size, size
+            if p.own and p.x >= @canvas.width / 2 
+                @scrollX = p.x - @canvas.width / 2
         return
 
-    newPlayer: (player) =>
+    addPlayer: (player) =>
         @players.push player
-        player.X = player.X*@blockSize | 0
-        player.Y = player.Y*@blockSize | 0
-        player.bindKeys() if player.myCharacter
+        player.X = player.X * @blockSize | 0
+        player.Y = player.Y * @blockSize | 0
 
 Game = new GameEngine
 
@@ -114,51 +111,47 @@ Game = new GameEngine
 # ------
 
 class Player
-    constructor:->
-        @X = 0
-        @Y = 0
+    constructor: (@x = 0, @y = 0, @own) ->
         
         @speedX = 0
         @speedY = 0
         @gravity = 0
         @attrition = 0.7
 
-        @defaultSpeed = 10
-        @defaultGravity = 10
-
-        @gravityLimit = 30
-        @jumpLimit = 10
+        @maxSpeed = 10
+        @gravity = 10
 
         @jumping = false
         @falling = false
         @movingLeft = false
         @movingRight = false
         @hasFloor = true
-        @myCharacter = false
-
-        @keysMap =
-            65: @moveLeft
-            68: @moveRight
-            87: @jump
-            37: @moveLeft
-            39: @moveRight
-            38: @jump
-            32: @jump
 
     update: =>
-        @X += @speedX | 0
-        @Y += @speedY | 0
+        # Update position
+        @x += @speedX
+        @y += @speedY
 
-        if @movingright and not @movingleft
-            @speedX += @defaultSpeed if @speedX <= @defaultSpeed
+        # Apply gravity
+        @speedY += @gravity
 
-        if @movingleft and not @movingright
-            @speedX -= @defaultSpeed if @speedX >= -@defaultSpeed
-       
-        if @jumping and !@falling and @speedY >= -@jumpLimit
-            @speedY -= @jumpLimit / 2
-        else if not @hasFloor
-            @jumping = false
+        if @KEY_RIGHT
+            @speedX = Math.min @speedX + 5, @maxSpeed
+
+        if @KEY_LEFT
+            @speedX = Math.min @speedX - 5, @maxSpeed
+
+        # Collisions
+        @applyPhysics()
+
+        if @jumping
+            if(!@falling && @speedY >= -@jumpLimit)
+                @speedY -= @jumpLimit / 2
+            else
+                @jumping = false
+                @falling = true
+
+        if not @hasFloor
             @falling = true
         else
             @falling = false
@@ -170,44 +163,43 @@ class Player
         if not @jumping and @speedX != 0
             @speedX = @speedX * @attrition
 
-        #we have to set this false on each iteration or the player will not fall
-        #@hasFloor = false
+        return
 
-    bindKeys:=>
-        km = @keysMap
-        document.addEventListener 'keydown', (e) ->
-            km[e.keyCode] true if km[e.keyCode]?
-        document.addEventListener 'keyup', (e) ->
-            km[e.keyCode] false if km[e.keyCode]?
+    bindKeys: ->
+        document.addEventListener 'keydown', (e) =>
+            e.preventDefault()
+            @keyPress e.keyCode, true
 
-    moveRight: (keydown) =>
-        @movingright =  keydown
+        document.addEventListener 'keyup', (e) =>
+            e.preventDefault()
+            @keyPress e.keyCode, false
 
-    moveLeft: (keydown) =>
-        @movingleft = keydown
-            
-    jump: (keydown)=>
-        @jumping = keydown
-        if not keydown
-            @gravity = @defaultGravity
-            @falling = true 
+        return
 
-player = new Player
-player.myCharacter = true
-player.X = 3
-player.Y = 15
-Game.newPlayer player
+    keyPress: (keyCode, state) ->
+        switch keyCode
+            when 37, 65
+                @KEY_LEFT = state
+            when 39, 68
+                @KEY_RIGHT = state
+            when 32, 38, 87
+                @KEY_JUMP = state 
+        return
+
+player = new Player 3, 15, true
+player.bindKeys()
+Game.addPlayer player
 
 # Sockets
 # -------
 window.socket = io.connect()
 
 socket.on 'world', (data) ->
+    console.log 'Loading map...'
     Game.map = expand data.map
     Game.run()
 
 socket.on 'update', (data) ->
-    console.log 'Update', data
     for block, type of data
         Game.map[block] = type
     Game.draw()
