@@ -65,6 +65,7 @@ class GameEngine
         @animation_id = requestAnimationFrame @run
         @update()
         @draw()
+        return
 
     stop: =>
         cancelAnimationFrame @animation_id
@@ -93,9 +94,8 @@ class GameEngine
             @ctx.fillRect x - @scrollX, y, size, size
 
         for p in @players
-            size = @blockSize
             @ctx.fillStyle = '#ddd'
-            @ctx.fillRect p.x - @scrollX, p.y, size, size
+            @ctx.fillRect p.x - @scrollX, p.y, p.width, p.height
             if p.own and p.x >= @canvas.width / 2 
                 @scrollX = p.x - @canvas.width / 2
         return
@@ -107,19 +107,25 @@ class GameEngine
 
 Game = new GameEngine
 
+slowLog = (freq, msg) ->
+    if Game.iter % freq == 0
+        console.log msg
+
 # Player
 # ------
 
 class Player
     constructor: (@x = 0, @y = 0, @own) ->
         
+        @width = Game.blockSize
+        @height = Game.blockSize * 2
+
         @speedX = 0
         @speedY = 0
-        @gravity = 0
-        @attrition = 0.7
 
+        @friction = 0.7
         @maxSpeed = 10
-        @gravity = 10
+        @gravity = 2
 
         @jumping = false
         @falling = false
@@ -132,17 +138,38 @@ class Player
         @x += @speedX
         @y += @speedY
 
-        # Apply gravity
-        @speedY += @gravity
-
         if @KEY_RIGHT
             @speedX = Math.min @speedX + 5, @maxSpeed
 
         if @KEY_LEFT
             @speedX = Math.min @speedX - 5, @maxSpeed
 
-        # Collisions
         @applyPhysics()
+
+    applyPhysics: ->
+
+        pos = pixelToBlock @x, @y + @height
+        currentBlock = pos.col * 30 + pos.row
+
+        if @falling
+            @speedY += @gravity
+
+        # Check for a tile underneath. If found,
+        # snap player position to the top of it
+        if Game.map[currentBlock] isnt TILES.air
+            if @falling
+                @speedY = 0
+                @y -= @y % Game.blockSize
+                @falling = false
+        else
+            slowLog 15, false
+            @falling = true
+
+        # Friction
+        if not @jumping and @speedX isnt 0
+            @speedX *= @friction
+
+        return
 
         if @jumping
             if(!@falling && @speedY >= -@jumpLimit)
