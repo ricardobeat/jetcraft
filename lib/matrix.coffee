@@ -33,7 +33,7 @@ compact = (arr, codes) ->
   count   = 0
   output  = ''
 
-  for item in map
+  for item in arr
     item_code = codes[item]
     if item_code is current
       count++
