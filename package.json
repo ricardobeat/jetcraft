@@ -14,7 +14,8 @@
     "socket.io": "~0.9.11"
   },
   "devDependencies": {
-    "coffee-script": ""
+    "coffee-script": "",
+    "less": ""
   },
   "scripts": {
     "test": "mocha"

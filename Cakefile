@@ -1,7 +1,7 @@
 flour = require 'flour'
 
 task 'build:less', ->
-    
+    bundle 'public/styles/*.less', 'public/styles/base.css'
 
 task 'build:coffee', ->
     compile 'public/scripts/client.coffee', 'public/scripts/client.js'
