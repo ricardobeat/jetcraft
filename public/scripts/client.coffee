@@ -227,8 +227,8 @@ Game.canvas.addEventListener 'click', (e) ->
     block = (coords.col * 30) + coords.row
     if Game.map[block] is TILES.air
         socket.emit 'put', block
-        console.log "Adding block #{block} - position #{coords.col},#{coords.row}"
+        console.log "Adding block @#{coords}, #{block}"
     else
         socket.emit 'del', block
-        console.log "Removing block #{block} - position #{coords.col},#{coords.row}"
+        console.log "Removing block @#{coords}, #{block}"
     

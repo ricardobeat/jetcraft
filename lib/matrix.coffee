@@ -56,10 +56,17 @@ compact = (arr, codes) ->
 
   return output
 
+changes = {}
+
 changeBlock = (block, type) ->
-  changes = {}
   changes[block] = map[block] = type
-  return changes
+
+# Bundle map updates
+setInterval ->
+  if Object.keys(changes).length > 0
+    matrix.emit 'change', changes
+    changes = {}
+, 300
 
 # Expose API
 matrix = new EventEmitter
@@ -69,10 +76,10 @@ _.extend matrix,
     compact map, TILE_CODES
 
   put: (block) ->
-    matrix.emit 'change', changeBlock block, TILES.dirt
+    changeBlock block, TILES.dirt
 
   del: (block) ->
-    matrix.emit 'change', changeBlock block, TILES.air
+    changeBlock block, TILES.air
 
 ### Test for server updates
 floating_rows = (Math.floor Math.random() * 100 for i in [0..50])
