@@ -154,27 +154,23 @@ class Player
 
         if @movingleft and not @movingright
             @speedX -= @defaultSpeed if @speedX >= -@defaultSpeed
-
-        if @jumping
-            if(!@falling && @speedY >= -@jumpLimit)
-                @speedY -= @jumpLimit / 2
-            else
-                @jumping = false
-                @falling = true
-
-        if not @hasFloor
+       
+        if @jumping and !@falling and @speedY >= -@jumpLimit
+            @speedY -= @jumpLimit / 2
+        else if not @hasFloor
+            @jumping = false
             @falling = true
-            @gravity = @defaultGravity
         else
             @falling = false
             @gravity = 0 #shut down gravity if we have floor
 
         if @falling
-            @speedY += @gravity if @speedY < @gravityLimit
+            @speedY += @gravity if @speedY < @gravity*2
 
         if not @jumping and @speedX != 0
             @speedX = @speedX * @attrition
 
+        #we have to set this false on each iteration or the player will not fall
         #@hasFloor = false
 
     bindKeys:=>
@@ -192,7 +188,9 @@ class Player
             
     jump: (keydown)=>
         @jumping = keydown
-        @gravity = @defaultGravity
+        if not keydown
+            @gravity = @defaultGravity
+            @falling = true 
 
 player = new Player
 player.myCharacter = true
