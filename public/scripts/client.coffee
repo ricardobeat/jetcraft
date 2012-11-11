@@ -162,12 +162,27 @@ class Player
                 @y -= @y % Game.blockSize
                 @falling = false
         else
-            slowLog 15, false
             @falling = true
+
+        # Lateral collisions
+        right = Game.map[currentBlock + 29]
+        left  = Game.map[currentBlock - 31]
+
+        console.log right, left, pos
+
+        if right? and @speedX > 0 and right isnt TILES.air
+            slowLog 15, 'collision right'
+            @speedX = 0
+            @x += @x % Game.blockSize
+
+        if left? and @speedX < 0 and left isnt TILES.air
+            @speedX = 0
+            @x -= @x % Game.blockSize
 
         # Friction
         if not @jumping and @speedX isnt 0
             @speedX *= @friction
+            @speedX = 0 if @speedX < 0.5
 
         return
 
