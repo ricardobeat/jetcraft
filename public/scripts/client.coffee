@@ -247,12 +247,20 @@ pixelToBlock = (x, y) ->
     return { col, row, index: col * 30 + row }
 
 Game.canvas.addEventListener 'click', (e) ->
-    coords = pixelToBlock e.pageX + Game.scrollX, e.pageY
+    x = e.pageX
+    y = e.pageY
+
+    distance = Math.sqrt Math.pow(x - player.x, 2) + Math.pow(y - player.y, 2)
+
+    return if distance > Game.blockSize * 4
+
+    coords = pixelToBlock x + Game.scrollX, y
     block = (coords.col * 30) + coords.row
+
     if Game.map[block] is TILES.air
         socket.emit 'put', block
-        console.log "Adding block @#{coords}, #{block}"
+        console.log "Adding block @#{JSON.stringify coords}, #{block}"
     else
         socket.emit 'del', block
-        console.log "Removing block @#{coords}, #{block}"
+        console.log "Removing block @#{JSON.stringify coords}, #{block}"
     
