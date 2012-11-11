@@ -257,6 +257,8 @@ Game.canvas.addEventListener 'click', (e) ->
     coords = pixelToBlock x + Game.scrollX, y
     block = (coords.col * 30) + coords.row
 
+    return if coords.col < 3
+
     if Game.map[block] is TILES.air
         socket.emit 'put', block
         console.log "Adding block @#{JSON.stringify coords}, #{block}"
