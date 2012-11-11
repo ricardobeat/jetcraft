@@ -94,11 +94,13 @@ Game = new GameEngine
 window.socket = io.connect()
 
 socket.on 'world', (data) ->
-    console.log data
     Game.map = expand data.map
     Game.run()
 
 socket.on 'update', (data) ->
-    console.log data
+    console.log 'Update', data
+    for block, type of data
+        Game.map[block] = type
+    Game.draw()
 
 socket.emit 'loadWorld'

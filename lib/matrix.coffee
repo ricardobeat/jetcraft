@@ -24,7 +24,7 @@ else
   floor_height = 20
   for i in [0..600-30]
     pos = 30*i
-    
+
     floor_height = floor_height + (-1 + Math.round Math.random() * 2)
     if floor_height < 10
       floor_height += 2
@@ -63,5 +63,24 @@ matrix = new EventEmitter
 _.extend matrix, 
   getMap: -> compact map, TILE_CODES
   put: -> matrix.emit 'change', { test: 1 }
+
+# Test for server updates
+floating_rows = (Math.floor Math.random() * 100 for i in [0..50])
+
+setInterval ->
+  row = floating_rows[Math.floor Math.random() * floating_rows.length]
+  cur = row * 30
+  limit = cur + 30
+  while map[cur] isnt TILES.dirt and cur < limit
+    cur += 1
+
+  changes = {}
+
+  if map[cur] is TILES.dirt
+    changes[cur]   = map[cur]   = TILES.air
+    changes[cur-1] = map[cur-1] = TILES.dirt
+
+    matrix.emit 'change', changes
+, 60
 
 module.exports = matrix
