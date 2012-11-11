@@ -16,8 +16,11 @@ expand = (arr) ->
 
     return output
 
-socket = io.connect()
+window.socket = io.connect()
 
 socket.on 'world', (data) ->
     console.log data
     #console.log expand data.map
+
+socket.on 'update', (data) ->
+    console.log data

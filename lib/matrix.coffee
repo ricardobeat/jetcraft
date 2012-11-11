@@ -1,6 +1,8 @@
 # Dependencies
 # ------------
 fs = require 'fs'
+_  = require 'underscore'
+{EventEmitter} = require 'events'
 
 # Tile types
 TILES =
@@ -45,5 +47,11 @@ compact = (arr, codes) ->
 
   return output
 
-module.exports =
-  getmap: -> compact map, TILE_CODES
+# Expose API
+matrix = new EventEmitter
+
+_.extend matrix, 
+  getMap: -> compact map, TILE_CODES
+  put: -> matrix.emit 'change', { test: 1 }
+
+module.exports = matrix

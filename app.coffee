@@ -44,4 +44,13 @@ matrix = require './lib/matrix'
 # Sockets
 # -------
 io.sockets.on 'connection', (socket) ->
-  socket.emit 'world', { map: matrix.getmap() }
+
+  # Send full map to client on connection
+  socket.emit 'world', { map: matrix.getMap() }
+
+  socket.on 'put', (data) ->
+    matrix.put 0
+
+matrix.on 'change', (data) ->
+  io.sockets.emit 'update', data
+
