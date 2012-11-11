@@ -42,7 +42,8 @@ class GameEngine
     constructor: (root = document.body) ->
         @createCanvas root
         @iter = 0
-        @players = []
+        @players = {}
+        @playerTags = {}
         @scrollX = 0
 
     createCanvas: (root) ->
@@ -71,8 +72,8 @@ class GameEngine
         cancelAnimationFrame @animation_id
 
     update: ->
-        for p in @players
-            p.update()
+        for name, player of @players
+            player.update()
         return
 
     draw: ->
@@ -93,19 +94,38 @@ class GameEngine
 
             @ctx.fillRect x - @scrollX, y, size, size
 
-        for p in @players
+        for name, p of @players
             @ctx.fillStyle = '#ddd'
             @ctx.fillRect p.x - @scrollX, p.y, p.width, p.height
+            nameTag = @playerTags[p.name]
+            @ctx.drawImage nameTag, p.x - @scrollX - (nameTag.width/2) + (Game.blockSize/2), p.y - nameTag.height
             if p.own and p.x >= @canvas.width / 2 
                 @scrollX = p.x - @canvas.width / 2
         return
 
     addPlayer: (player) =>
-        @players.push player
-        player.X = player.X * @blockSize | 0
-        player.Y = player.Y * @blockSize | 0
+        @players[player.name] = player
+        player.x *= @blockSize
+        player.y *= @blockSize
 
-Game = new GameEngine
+        @prerenderTag player
+
+    # Pre-render player name
+    prerenderTag: (player) ->
+        tempCanvas = document.createElement 'canvas'
+        fontsize = 10
+        buffer = 8
+        tempCanvas.height = fontsize + buffer
+        tempCanvas.width = 100
+        tempCtx = tempCanvas.getContext '2d'
+        tempCtx.font = '10px sans-serif'
+        tempCtx.fillStyle = '#000'
+        tempCtx.textBaseline = 'top'
+        tempCtx.textAlign = 'center'
+        tempCtx.fillText player.name, tempCanvas.width/2, 0
+        @playerTags[player.name] = tempCanvas
+
+window.Game = new GameEngine
 
 slowLog = (freq, msg) ->
     if Game.iter % freq == 0
@@ -115,7 +135,7 @@ slowLog = (freq, msg) ->
 # ------
 
 class Player
-    constructor: (@x = 0, @y = 0, @own) ->
+    constructor: (@name, @x = 0, @y = 0, @own) ->
         
         @width = Game.blockSize
         @height = Game.blockSize * 2
@@ -218,9 +238,10 @@ class Player
                 @KEY_JUMP = state 
         return
 
-player = new Player 3, 15, true
-player.bindKeys()
-Game.addPlayer player
+playerName = prompt 'My name is '
+PLAYER = new Player playerName, 3, 3, true
+PLAYER.bindKeys()
+Game.addPlayer PLAYER
 
 # Sockets
 # -------
@@ -236,7 +257,29 @@ socket.on 'update', (data) ->
         Game.map[block] = type
     Game.draw()
 
-socket.emit 'loadWorld'
+socket.on 'newPlayer', (data) ->
+    Game.addPlayer new Player data.id, -20, -20
+
+socket.on 'playersList', (players) ->
+    for id, p of players
+        continue if Game.players[id]?
+        Game.addPlayer new Player id, p.x, p.y
+
+socket.on 'updatePlayer', (data) ->
+    if (player = Game.players[data.id])
+        player.x = data.x
+        player.y = data.y
+
+socket.emit 'setup'
+
+lx = ly = 0
+setInterval ->
+    x = Math.floor PLAYER.x
+    y = Math.floor PLAYER.y
+    socket.emit 'move', { x, y } unless lx == x and ly == y
+    lx = x
+    ly = y
+, 1000/4
 
 # Player controls
 # ---------------
@@ -250,7 +293,7 @@ Game.canvas.addEventListener 'click', (e) ->
     x = e.pageX
     y = e.pageY
 
-    distance = Math.sqrt Math.pow(x + Game.scrollX - player.x, 2) + Math.pow(y - player.y, 2)
+    distance = Math.sqrt Math.pow(x + Game.scrollX - PLAYER.x, 2) + Math.pow(y - PLAYER.y, 2)
 
     return if distance > Game.blockSize * 4
 
