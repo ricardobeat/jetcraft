@@ -225,7 +225,7 @@ pixelToBlock = (x, y) ->
     return { col, row }
 
 Game.canvas.addEventListener 'click', (e) ->
-    coords = pixelToBlock e.pageX, e.pageY
+    coords = pixelToBlock e.pageX + Game.scrollX, e.pageY
     block = (coords.col * 30) + coords.row
     if Game.map[block] is TILES.air
         socket.emit 'put', block
