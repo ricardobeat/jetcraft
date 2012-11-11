@@ -6,6 +6,14 @@ window.RequestAnimationFrame ?=
     window.oRequestAnimationFrame      ||
     window.msRequestAnimationFrame
 
+IMAGES =
+    player: 'images/boneco.png'
+
+for image, src of IMAGES
+    img = new Image
+    img.src = src
+    IMAGES[image] = img
+
 # Last resort.
 unless window.requestAnimationFrame?
     window.requestAnimationFrame = (callback,element) ->
@@ -96,7 +104,8 @@ class GameEngine
 
         for name, p of @players
             @ctx.fillStyle = '#ddd'
-            @ctx.fillRect p.x - @scrollX, p.y, p.width, p.height
+            @ctx.drawImage IMAGES.player, 0, 0, 10, 20, p.x - @scrollX, p.y, p.width, p.height
+            #@ctx.fillRect p.x - @scrollX, p.y, p.width, p.height
             nameTag = @playerTags[p.name]
             @ctx.drawImage nameTag, p.x - @scrollX - (nameTag.width/2) + (Game.blockSize/2), p.y - nameTag.height
             if p.own and p.x >= @canvas.width / 2 
@@ -119,7 +128,7 @@ class GameEngine
         tempCanvas.width = 100
         tempCtx = tempCanvas.getContext '2d'
         tempCtx.font = '10px sans-serif'
-        tempCtx.fillStyle = '#000'
+        tempCtx.fillStyle = '#'+Math.floor(Math.random()*16777215/2).toString(16);
         tempCtx.textBaseline = 'top'
         tempCtx.textAlign = 'center'
         tempCtx.fillText player.name, tempCanvas.width/2, 0
@@ -238,7 +247,10 @@ class Player
                 @KEY_JUMP = state 
         return
 
-playerName = prompt 'My name is '
+playerName = window.localStorage?.name
+if not playerName
+    playerName = prompt 'My name is '
+    window.localStorage?.name = playerName
 PLAYER = new Player playerName, 3, 3, true
 PLAYER.bindKeys()
 Game.addPlayer PLAYER

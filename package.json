@@ -1,6 +1,10 @@
 {
   "name": "nko3-the-entire-russian-a",
+<<<<<<< HEAD
   "version": "0.1.0-2",
+=======
+  "version": "0.1.0-4",
+>>>>>>> 6f1e1a0... Player skin
   "description": "The entire Russian army",
   "main": "app.coffee",
   "directories": {
