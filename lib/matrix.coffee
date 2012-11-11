@@ -15,7 +15,7 @@ TILE_CODES =
 if fs.existsSync 'world.dat'
   map = fs.readFileSync 'world.dat'
 else
-  mapSize = 640 * 4000
+  mapSize = 30 * 600
   map = new Buffer mapSize
   map.fill TILES.air
   map.slice(Math.floor mapSize/2, mapSize).fill TILES.dirt
