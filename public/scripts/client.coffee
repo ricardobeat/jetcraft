@@ -1,8 +1,24 @@
 
+# Trying to find a RequestAnimationFrame implementation.
+window.RequestAnimationFrame ?=
+    window.webkitRequestAnimationFrame ||
+    window.mozRequestAnimationFrame    ||
+    window.oRequestAnimationFrame      ||
+    window.msRequestAnimationFrame
+
+# Last resort.
+unless window.requestAnimationFrame?
+    window.requestAnimationFrame = (callback,element) ->
+        setTimeout callback, 1000/60
+    window.cancelAnimationFrame = (id) ->
+        clearTimeout id
+
+# Tile codes for inflating map data.
 TILE_CODES =
     A: 0
     D: 10
 
+# Our super-powerful de-compression algorithm.
 expand = (arr) ->
     output = []
 
@@ -16,6 +32,8 @@ expand = (arr) ->
 
     return output
 
+# Sockets
+# -------
 window.socket = io.connect()
 
 socket.on 'world', (data) ->
@@ -25,48 +43,42 @@ socket.on 'world', (data) ->
 socket.on 'update', (data) ->
     console.log data
 
-## New crap, needs refactor... coding here just for testing purposes. Don't freak out plz! :)
+# Game engine
+# -----------
 
-#requestAnimationFrame Polyfill
-do -> window.requestAnimFrame = ->
-    return window.RequestAnimationFrame ||
-    window.webkitRequestAnimationFrame  ||
-    window.mozRequestAnimationFrame     ||
-    window.oRequestAnimationFrame       ||
-    window.msRequestAnimationFrame      ||
-    (callback,element)->
-        window.setTimeout callback, 1000 / 60
+class GameEngine
 
-if !window.requestAnimationFrame
-    window.requestAnimationFrame = (callback, element) ->
-        currTime = new Date().getTime()
-        timeToCall = Math.max 0, 16 - (currTime - lastTime)
-        id = window.setTimeout ()->
-            callback currTime + timeToCall
-        , timeToCall
-        lastTime = currTime + timeToCall;
-        return id
- 
-if !window.cancelAnimationFrame
-  window.cancelAnimationFrame = (id) ->
-    clearTimeout id
+    constructor: (root = document.body) ->
+        @createCanvas root
+        @iter = 0
 
-#canvas init
-do ->
-    canvas = document.createElement 'canvas'
-    canvas.width = 800
-    canvas.height = 600
-    context = canvas.getContext '2d'
-    document.body.appendChild canvas
-    run()
+    createCanvas: (root) ->
+        @canvas = document.createElement 'canvas'
+        w = document.body.clientWidth or window.innerWidth
+        h = Math.min w * 0.75, document.body.clientHeight or window.innerHeight
+        console.log "Width: #{w}, Height: #{h}"
+        @canvas.width = w
+        @canvas.height = h
+        @ctx = @canvas.getContext '2d'
+        root.appendChild @canvas
 
-run =>
-    requestAnimFrame run
-    update()
-    draw()
+    run: =>
+        @iter++
+        @animation_id = requestAnimationFrame Game.run
+        @update()
+        @draw()
+        if @iter is 2 then @stop()
 
-update =>
-    console.log "foo"
+    stop: =>
+        cancelAnimationFrame @animation_id
 
-draw =>
-    console.log "bar"
+    update: ->
+        console.log 'Update', @iter
+
+    draw: ->
+        console.log 'Draw', @iter
+
+Game = new GameEngine
+
+window.addEventListener 'load', Game.run
+
