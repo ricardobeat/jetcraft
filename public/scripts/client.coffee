@@ -25,7 +25,10 @@ socket.on 'world', (data) ->
 socket.on 'update', (data) ->
     console.log data
 
-do -> window.requestAnimFrame = () ->
+## New crap, needs refactor... coding here just for testing purposes. Don't freak out plz! :)
+
+#requestAnimationFrame Polyfill
+do -> window.requestAnimFrame = ->
     return window.RequestAnimationFrame ||
     window.webkitRequestAnimationFrame  ||
     window.mozRequestAnimationFrame     ||
@@ -47,3 +50,23 @@ if !window.requestAnimationFrame
 if !window.cancelAnimationFrame
   window.cancelAnimationFrame = (id) ->
     clearTimeout id
+
+#canvas init
+do ->
+    canvas = document.createElement 'canvas'
+    canvas.width = 800
+    canvas.height = 600
+    context = canvas.getContext '2d'
+    document.body.appendChild canvas
+    run()
+
+run =>
+    requestAnimFrame run
+    update()
+    draw()
+
+update =>
+    console.log "foo"
+
+draw =>
+    console.log "bar"
