@@ -24,3 +24,26 @@ socket.on 'world', (data) ->
 
 socket.on 'update', (data) ->
     console.log data
+
+do -> window.requestAnimFrame = () ->
+    return window.RequestAnimationFrame ||
+    window.webkitRequestAnimationFrame  ||
+    window.mozRequestAnimationFrame     ||
+    window.oRequestAnimationFrame       ||
+    window.msRequestAnimationFrame      ||
+    (callback,element)->
+        window.setTimeout callback, 1000 / 60
+
+if !window.requestAnimationFrame
+    window.requestAnimationFrame = (callback, element) ->
+        currTime = new Date().getTime()
+        timeToCall = Math.max 0, 16 - (currTime - lastTime)
+        id = window.setTimeout ()->
+            callback currTime + timeToCall
+        , timeToCall
+        lastTime = currTime + timeToCall;
+        return id
+ 
+if !window.cancelAnimationFrame
+  window.cancelAnimationFrame = (id) ->
+    clearTimeout id
