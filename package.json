@@ -18,7 +18,8 @@
     "less": ""
   },
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "start": "app.coffee"
   },
   "repository": {
     "type": "git",
@@ -26,5 +27,8 @@
   },
   "author": "Ricardo Tomasi",
   "license": "None",
-  "subdomain": "the-entire-russian-a.nko3"
+  "subdomain": "the-entire-russian-a.nko3",
+  "engines": {
+    "node": "0.8.x"
+  }
 }
