@@ -44,6 +44,7 @@ class GameEngine
     constructor: (root = document.body) ->
         @createCanvas root
         @iter = 0
+        @players = []
 
     createCanvas: (root) ->
         @canvas = document.createElement 'canvas'
@@ -65,12 +66,15 @@ class GameEngine
         @animation_id = requestAnimationFrame @run
         @update()
         @draw()
-        if @iter is 2 then @stop()
+        #if @iter is 2 then @stop()
 
     stop: =>
         cancelAnimationFrame @animation_id
 
     update: ->
+        for p in @players
+            p.update()
+        return
 
     draw: ->
         currentBlockType = null
@@ -89,9 +93,110 @@ class GameEngine
 
 
             @ctx.fillRect x, y, size, size
+        for p in @players
+            size = @blockSize
+            @ctx.fillStyle = '#ddd'
+            @ctx.fillRect p.X, p.Y, size, size
         return
 
+    newPlayer: (player) =>
+        @players.push player
+        player.X = player.X*@blockSize | 0
+        player.Y = player.Y*@blockSize | 0
+        player.bindKeys() if player.myCharacter
+
 Game = new GameEngine
+
+# Player
+# ------
+
+class Player
+    constructor:->
+        @X = 0
+        @Y = 0
+        
+        @speedX = 0
+        @speedY = 0
+        @gravity = 0
+        @attrition = 0.7
+
+        @defaultSpeed = 10
+        @defaultGravity = 10
+
+        @gravityLimit = 30
+        @jumpLimit = 10
+
+        @jumping = false
+        @falling = false
+        @movingLeft = false
+        @movingRight = false
+        @hasFloor = true
+        @myCharacter = false
+
+        @keysMap =
+            65: @moveLeft
+            68: @moveRight
+            87: @jump
+            37: @moveLeft
+            39: @moveRight
+            38: @jump
+            32: @jump
+
+    update: =>
+        @X += @speedX | 0
+        @Y += @speedY | 0
+
+        if @movingright and not @movingleft
+            @speedX += @defaultSpeed if @speedX <= @defaultSpeed
+
+        if @movingleft and not @movingright
+            @speedX -= @defaultSpeed if @speedX >= -@defaultSpeed
+
+        if @jumping
+            if(!@falling && @speedY >= -@jumpLimit)
+                @speedY -= @jumpLimit / 2
+            else
+                @jumping = false
+                @falling = true
+
+        if not @hasFloor
+            @falling = true
+            @gravity = @defaultGravity
+        else
+            @falling = false
+            @gravity = 0 #shut down gravity if we have floor
+
+        if @falling
+            console.log @speedY
+            @speedY += @gravity if @speedY <= @gravityLimit
+
+        if not @jumping and @speedX != 0
+            @speedX = @speedX * @attrition
+
+        @hasFloor = false
+
+    bindKeys:=>
+        km = @keysMap
+        document.addEventListener 'keydown', (e) ->
+            km[e.keyCode] true if km[e.keyCode]?
+        document.addEventListener 'keyup', (e) ->
+            km[e.keyCode] false if km[e.keyCode]?
+
+    moveRight: (keydown) =>
+        @movingright =  keydown
+
+    moveLeft: (keydown) =>
+        @movingleft = keydown
+            
+    jump: (keydown)=>
+        @gravity = @defaultGravity
+        @jumping = keydown
+
+player = new Player
+player.myCharacter = true
+player.X = 3
+player.Y = 15
+Game.newPlayer player
 
 # Sockets
 # -------
