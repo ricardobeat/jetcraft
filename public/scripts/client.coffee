@@ -167,6 +167,9 @@ class Player
         @x += @speedX
         @y += @speedY
 
+        @x = 0 if @x <= 0
+        @y = 0 if @y <= 0
+
         if @KEY_RIGHT
             @speedX = Math.min @speedX + 5, @maxSpeed
 
@@ -311,6 +314,8 @@ Game.canvas.addEventListener 'click', (e) ->
 
     coords = pixelToBlock x + Game.scrollX, y
     block = (coords.col * 30) + coords.row
+
+    return if coords.col < 3
 
     if Game.map[block] is TILES.air
         socket.emit 'put', block
