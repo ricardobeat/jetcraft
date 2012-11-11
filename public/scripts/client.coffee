@@ -144,6 +144,9 @@ class Player
         if @KEY_LEFT
             @speedX = Math.min @speedX - 5, @maxSpeed
 
+        if @KEY_JUMP
+            @speedY = -6
+
         @applyPhysics()
 
     getSensors: ->
@@ -191,27 +194,6 @@ class Player
         if not @jumping and @speedX isnt 0
             @speedX *= @friction
             @speedX = 0 if Math.abs(@speedX) < 0.5
-
-        return
-
-        if @jumping
-            if(!@falling && @speedY >= -@jumpLimit)
-                @speedY -= @jumpLimit / 2
-            else
-                @jumping = false
-                @falling = true
-
-        if not @hasFloor
-            @falling = true
-        else
-            @falling = false
-            @gravity = 0 #shut down gravity if we have floor
-
-        if @falling
-            @speedY += @gravity if @speedY < @gravity*2
-
-        if not @jumping and @speedX != 0
-            @speedX = @speedX * @attrition
 
         return
 
