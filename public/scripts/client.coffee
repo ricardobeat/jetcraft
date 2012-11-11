@@ -146,7 +146,20 @@ class Player
 
         @applyPhysics()
 
+    getSensors: ->
+        return {
+            top    : [@x + Math.floor(@width/2), @y - 1]
+            right  : [@x + @width + 1, @y + Math.floor(@height/2)]
+            bottom : [@x + Math.floor(@width/2), @y + @height + 1]
+            left   : [@x - 1, @y + Math.floor(@height/2)]
+        }
+
+    detect: (sensor) ->
+        return (pixelToBlock.apply null, sensor).index
+
     applyPhysics: ->
+
+        sensors = @getSensors()
 
         pos = pixelToBlock @x, @y + @height
         currentBlock = pos.col * 30 + pos.row
@@ -156,7 +169,7 @@ class Player
 
         # Check for a tile underneath. If found,
         # snap player position to the top of it
-        if Game.map[currentBlock] isnt TILES.air
+        if Game.map[@detect sensors.bottom] isnt TILES.air
             if @falling
                 @speedY = 0
                 @y -= @y % Game.blockSize
@@ -165,24 +178,19 @@ class Player
             @falling = true
 
         # Lateral collisions
-        right = Game.map[currentBlock + 29]
-        left  = Game.map[currentBlock - 31]
-
-        console.log right, left, pos
+        left  = Game.map[@detect sensors.left]
+        right = Game.map[@detect sensors.right]
 
         if right? and @speedX > 0 and right isnt TILES.air
-            slowLog 15, 'collision right'
             @speedX = 0
-            @x += @x % Game.blockSize
 
         if left? and @speedX < 0 and left isnt TILES.air
             @speedX = 0
-            @x -= @x % Game.blockSize
 
         # Friction
         if not @jumping and @speedX isnt 0
             @speedX *= @friction
-            @speedX = 0 if @speedX < 0.5
+            @speedX = 0 if Math.abs(@speedX) < 0.5
 
         return
 
@@ -254,7 +262,7 @@ socket.emit 'loadWorld'
 pixelToBlock = (x, y) ->
     col = Math.floor x / Game.blockSize
     row = Math.floor y / Game.blockSize
-    return { col, row }
+    return { col, row, index: col * 30 + row }
 
 Game.canvas.addEventListener 'click', (e) ->
     coords = pixelToBlock e.pageX + Game.scrollX, e.pageY
