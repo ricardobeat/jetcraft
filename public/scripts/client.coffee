@@ -52,6 +52,7 @@ class GameEngine
         @iter = 0
         @players = {}
         @playerTags = {}
+        @entities = []
         @scrollX = 0
 
     createCanvas: (root) ->
@@ -80,11 +81,14 @@ class GameEngine
         cancelAnimationFrame @animation_id
 
     update: ->
-        for name, player of @players
-            player.update()
+        player.update() for name, player of @players
+        ent.update()? for ent in @entities
         return
 
     draw: ->
+
+        @ctx.globalAlpha = 1
+
         currentBlockType = null
 
         for tile, i in @map
@@ -139,6 +143,9 @@ class GameEngine
             @ctx.drawImage nameTag, p.x - @scrollX - (nameTag.width/2) + (Game.blockSize/2), p.y - nameTag.height
             if p.own and p.x >= @canvas.width / 2 
                 @scrollX = p.x - @canvas.width / 2
+
+        ent.draw()? for ent in @entities
+
         return
 
     addPlayer: (player) =>
@@ -163,11 +170,31 @@ class GameEngine
         tempCtx.fillText player.name, tempCanvas.width/2, 0
         @playerTags[player.name] = tempCanvas
 
+    addEntity: (ent) ->
+        @entities.push ent
+
+    removeEntity: (ent) ->
+        @entities = @entities.filter (e) -> e isnt ent
+
 window.Game = new GameEngine
 
 slowLog = (freq, msg) ->
     if Game.iter % freq == 0
         console.log msg
+
+class Particle
+    constructor: (@x, @y, @size, @color) ->
+        @alpha = 1
+
+    draw: ->
+        Game.ctx.fillStyle = @color
+        Game.ctx.globalAlpha = @alpha
+        Game.ctx.fillRect @x, @y, @size, @size
+
+    update: ->
+        @alpha -= 0.1
+        if @alpha <= 0
+            Game.removeEntity @
 
 # Player
 # ------
@@ -209,6 +236,12 @@ class Player
             @speedY = -5
 
         @applyPhysics()
+
+        if @speedY isnt 0
+            px = @x - @speedX * Math.random() * 3 - Game.scrollX
+            py = @y + 15 + Math.floor Math.random() * 10
+            ps = 1 + Math.floor Math.random() * 4
+            Game.addEntity new Particle px, py, ps, '#fd0'
 
     getSensors: ->
         return {
