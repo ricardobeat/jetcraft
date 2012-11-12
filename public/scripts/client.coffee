@@ -285,19 +285,19 @@ socket.on 'update', (data) ->
     Game.draw()
 
 socket.on 'newPlayer', (data) ->
-    Game.addPlayer new Player data.id, -20, -20
+    Game.addPlayer new Player data.name, -20, -20
 
 socket.on 'playersList', (players) ->
-    for id, p of players
-        continue if Game.players[id]?
-        Game.addPlayer new Player id, p.x, p.y
+    for name, p of players
+        continue if Game.players[name]?
+        Game.addPlayer new Player name, p.x, p.y
 
 socket.on 'updatePlayer', (data) ->
-    if (player = Game.players[data.id])
+    if (player = Game.players[data.name])
         player.x = data.x
         player.y = data.y
 
-socket.emit 'setup'
+socket.emit 'setup', playerName
 
 lx = ly = 0
 setInterval ->

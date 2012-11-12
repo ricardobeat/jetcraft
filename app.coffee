@@ -46,14 +46,17 @@ matrix = require './lib/matrix'
 # -------
 
 players = {}
+playerIds = {}
 
 io.sockets.on 'connection', (socket) ->
 
   # Send full map to client on connection
-  socket.on 'setup', ->
+  socket.on 'setup', (name) ->
     socket.emit 'world', { map: matrix.getMap() }
     socket.emit 'playersList', players
-    socket.broadcast.emit 'newPlayer', { id: socket.id }
+    socket.broadcast.emit 'newPlayer', { name }
+    players[name] = { x: pos.x, y: pos.y }
+    playerIds[socket.id] = name
 
   socket.on 'put', (block) ->
     matrix.put block
@@ -62,8 +65,7 @@ io.sockets.on 'connection', (socket) ->
     matrix.del block
 
   socket.on 'move', (pos) ->
-    players[socket.id] = { x: pos.x, y: pos.y }
-    socket.broadcast.emit 'updatePlayer', { id: socket.id, x: pos.x, y: pos.y }
+    socket.broadcast.emit 'updatePlayer', { name: playerIds[socket.id]?.name, x: pos.x, y: pos.y }
 
 matrix.on 'change', (data) ->
   io.sockets.emit 'update', data
