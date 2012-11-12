@@ -66,11 +66,16 @@ io.sockets.on 'connection', (socket) ->
 
   socket.on 'move', (pos) ->
     name = playerIds[socket.id]
+    return if not name?
     x = pos.x / players[name].size
     y = pos.y / players[name].size
     socket.broadcast.emit 'updatePlayer', { name , x, y }
     players[name].x = x
     players[name].y = y
+
+  socket.on 'disconnect', (pos) ->
+    name = playerIds[socket.id]
+    delete players[name] if name?
 
 matrix.on 'change', (data) ->
   io.sockets.emit 'update', data
