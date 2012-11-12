@@ -104,7 +104,19 @@ class GameEngine
 
         for name, p of @players
             @ctx.fillStyle = '#ddd'
-            @ctx.drawImage IMAGES.player, 0, 0, 10, 20, p.x - @scrollX, p.y, p.width, p.height
+
+            if p.speedX < 0
+                if p.speedY isnt 0
+                    sx = 10
+                else
+                    sx = 0
+            else
+                if p.speedY isnt 0
+                    sx = 30
+                else
+                    sx = 20
+
+            @ctx.drawImage IMAGES.player, sx, 0, 10, 20, p.x - @scrollX, p.y, p.width, p.height
             #@ctx.fillRect p.x - @scrollX, p.y, p.width, p.height
             nameTag = @playerTags[p.name]
             @ctx.drawImage nameTag, p.x - @scrollX - (nameTag.width/2) + (Game.blockSize/2), p.y - nameTag.height
