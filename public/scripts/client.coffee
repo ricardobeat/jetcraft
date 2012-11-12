@@ -297,7 +297,7 @@ socket.on 'updatePlayer', (data) ->
         player.x = data.x
         player.y = data.y
 
-socket.emit 'setup', playerName
+socket.emit 'setup', PLAYER.name
 
 lx = ly = 0
 setInterval ->

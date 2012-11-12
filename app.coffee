@@ -55,8 +55,9 @@ io.sockets.on 'connection', (socket) ->
     socket.emit 'world', { map: matrix.getMap() }
     socket.emit 'playersList', players
     socket.broadcast.emit 'newPlayer', { name }
-    players[name] = { x: pos.x, y: pos.y }
+    players[name] = { name: name, x: 0, y: 0 }
     playerIds[socket.id] = name
+    console.log name
 
   socket.on 'put', (block) ->
     matrix.put block
@@ -65,7 +66,10 @@ io.sockets.on 'connection', (socket) ->
     matrix.del block
 
   socket.on 'move', (pos) ->
-    socket.broadcast.emit 'updatePlayer', { name: playerIds[socket.id]?.name, x: pos.x, y: pos.y }
+    name = playerIds[socket.id]
+    socket.broadcast.emit 'updatePlayer', { name , x: pos.x, y: pos.y }
+    players[name].x = pos.x
+    players[name].y = pos.y
 
 matrix.on 'change', (data) ->
   io.sockets.emit 'update', data
