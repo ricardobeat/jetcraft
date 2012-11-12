@@ -90,16 +90,32 @@ class GameEngine
         for tile, i in @map
             col  = Math.floor i / 30
             row = i % 30
+
             # Draw blocks like a grid
             size = @blockSize
             x = col * size
             y = row * size
+
+            # Skip off-screen tiles
             continue if x < @scrollX or x > @scrollX + Game.canvas.width + Game.blockSize
+
+            ## Re-calculate lighting every 1s
+            if @iter % 20 == 0 and tile is TILES.dirt
+                light = 0
+                for j in [i-2, i-1, i+29, i+30, i-30, i-31, i+1, i+2]
+                    if @map[j] is TILES.air
+                        light++
+                tile = @map[i] = 10 + Math.ceil(light/2)
+
             if tile isnt currentBlockType
                 currentBlockType = tile
                 @ctx.fillStyle = switch tile
                     when 0  then '#eeeeff'
-                    when 10 then '#66cc44'
+                    when 10 then '#22cc00'
+                    when 11 then '#47cf27'
+                    when 12 then '#66dd44'
+                    when 13 then '#99dd66'
+                    when 14 then '#aadf77'
 
             @ctx.fillRect x - @scrollX, y, size, size
 
@@ -165,9 +181,9 @@ class Player
         @speedX = 0
         @speedY = 0
 
-        @friction = 0.7
-        @maxSpeed = 10
-        @gravity = 2
+        @friction = 0.75
+        @maxSpeed = 8
+        @gravity = 0.8
 
         @jumping = false
         @falling = false
@@ -184,13 +200,13 @@ class Player
         @y = 0 if @y <= 0
 
         if @KEY_RIGHT
-            @speedX = Math.min @speedX + 5, @maxSpeed
+            @speedX = Math.min @speedX + 2, @maxSpeed
 
         if @KEY_LEFT
-            @speedX = Math.min @speedX - 5, @maxSpeed
+            @speedX = Math.min @speedX - 2, @maxSpeed
 
         if @KEY_JUMP
-            @speedY = -6
+            @speedY = -5
 
         @applyPhysics()
 
