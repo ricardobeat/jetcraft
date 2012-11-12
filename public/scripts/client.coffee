@@ -105,7 +105,7 @@ class GameEngine
                 for j in [i-2, i-1, i+29, i+30, i-30, i-31, i+1, i+2]
                     if @map[j] is TILES.air
                         light++
-                tile = @map[i] = 10 + Math.ceil(light/2)
+                @map[i] = 10 + Math.ceil(light/2)
 
             if tile isnt currentBlockType
                 currentBlockType = tile
@@ -310,9 +310,7 @@ socket.on 'playersList', (players) ->
         Game.addPlayer new Player name, p.x, p.y
 
 socket.on 'updatePlayer', (data) ->
-    console.log data
     if (player = Game.players[data.name])
-        console.log data
         player.x = data.x * Game.blockSize
         player.y = data.y * Game.blockSize
 
