@@ -94,6 +94,7 @@ class GameEngine
             size = @blockSize
             x = col * size
             y = row * size
+            continue if x < @scrollX or x > @scrollX + Game.canvas.width + Game.blockSize
             if tile isnt currentBlockType
                 currentBlockType = tile
                 @ctx.fillStyle = switch tile
