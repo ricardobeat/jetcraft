@@ -16,6 +16,7 @@ TILE_CODES =
 # Load map file, create a new map if it doesn't exist
 if fs.existsSync 'world.dat'
   map = fs.readFileSync 'world.dat'
+  console.log 'Loaded world.dat from disk'
 else
   mapSize = 30 * 600
   map = new Buffer mapSize
@@ -34,10 +35,11 @@ else
     map.slice(pos+floor_height, pos+30).fill TILES.dirt
   console.log 'Generated new map'
 
-# Compress map data.
-# Gets us around n_blocks + 3000 bytes (2560000 -> 13790 for 10.000 blocks)
-#zipped = zlib.gzip map.toString('utf8'), (err, res) ->
-#  console.log res.toString('hex')
+# Flush map to disk
+setInterval ->
+  fs.writeFile 'world.dat', map, (err) ->
+    console.log "Map saved to world.dat #{new Date}"
+, 1000 * 15
 
 compact = (arr, codes) ->
   current = null
