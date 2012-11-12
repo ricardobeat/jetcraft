@@ -293,11 +293,13 @@ socket.on 'playersList', (players) ->
         Game.addPlayer new Player name, p.x, p.y
 
 socket.on 'updatePlayer', (data) ->
+    console.log data
     if (player = Game.players[data.name])
-        player.x = data.x
-        player.y = data.y
+        console.log data
+        player.x = data.x * Game.blockSize
+        player.y = data.y * Game.blockSize
 
-socket.emit 'setup', PLAYER.name
+socket.emit 'setup', { name: PLAYER.name, size: Game.blockSize }
 
 lx = ly = 0
 setInterval ->
