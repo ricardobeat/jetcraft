@@ -21,18 +21,6 @@ for image, src of IMAGES
     img.src = src
     IMAGES[image] = img
 
-# Our super-powerful de-compression algorithm.
-expand = (arr) ->
-    output = []
-
-    arr.replace /\w\d+/g, (m) ->
-        block_type = m[0]
-        count = m.slice(1)
-        while count--
-            output.push TILE_CODES[block_type]
-
-    return output
-
 # Game engine
 # -----------
 
