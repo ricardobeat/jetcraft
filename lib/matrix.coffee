@@ -1,7 +1,9 @@
 # Dependencies
 # ------------
-fs = require 'fs'
-_  = require 'underscore'
+fs      = require 'fs'
+_       = require 'underscore'
+numpack = require 'numpack'
+
 {EventEmitter} = require 'events'
 
 # Tile types
@@ -41,23 +43,6 @@ setInterval ->
     console.log "Map saved to world.dat #{new Date}"
 , 1000 * 15
 
-compact = (arr, codes) ->
-  current = null
-  count   = 0
-  output  = ''
-
-  for item in arr
-    item_code = codes[item]
-    if item_code is current
-      count++
-    else
-      if count > 0
-        output += current + count
-      current = item_code
-      count = 1
-
-  return output
-
 changes = {}
 
 changeBlock = (block, type) ->
@@ -75,7 +60,7 @@ matrix = new EventEmitter
 
 _.extend matrix, 
   getMap: ->
-    compact map, TILE_CODES
+    numpack.compact map, TILE_CODES
 
   put: (block) ->
     changeBlock block, TILES.dirt
