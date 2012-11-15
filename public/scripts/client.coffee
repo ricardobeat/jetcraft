@@ -6,6 +6,13 @@ window.RequestAnimationFrame ?=
     window.oRequestAnimationFrame      ||
     window.msRequestAnimationFrame
 
+# Last resort.
+unless window.requestAnimationFrame?
+    window.requestAnimationFrame = (callback,element) ->
+        setTimeout callback, 1000/60
+    window.cancelAnimationFrame = (id) ->
+        clearTimeout id
+
 IMAGES =
     player: 'images/boneco.png'
 
@@ -13,13 +20,6 @@ for image, src of IMAGES
     img = new Image
     img.src = src
     IMAGES[image] = img
-
-# Last resort.
-unless window.requestAnimationFrame?
-    window.requestAnimationFrame = (callback,element) ->
-        setTimeout callback, 1000/60
-    window.cancelAnimationFrame = (id) ->
-        clearTimeout id
 
 # Our super-powerful de-compression algorithm.
 expand = (arr) ->
