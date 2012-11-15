@@ -2,94 +2,91 @@
 # ------------
 fs      = require 'fs'
 _       = require 'underscore'
+util    = require 'util'
 numpack = require 'numpack'
+events  = require 'events'
 
-{EventEmitter} = require 'events'
+TILES = require './tiles'
 
-# Tile types
-TILES =
-  air  : 0
-  dirt : 10
+# Map data
+# --------
+MAP = null
 
-TILE_CODES =
-  0  : 'A'
-  10 : 'D'
+# Load map file, returns a Buffer object
+loadMap = (path) ->
+    try
+        map = fs.readFileSync path
+        console.log 'Loaded world.dat from disk'
+    catch e
+        map = false
 
-# Load map file, create a new map if it doesn't exist
-if fs.existsSync 'world.dat'
-  map = fs.readFileSync 'world.dat'
-  console.log 'Loaded world.dat from disk'
-else
-  mapSize = 30 * 600
-  map = new Buffer mapSize
-  map.fill TILES.air
+    return map
 
-  floor_height = 20
-  for i in [0..600-30]
-    pos = 30*i
+# Generate a new map
+generateMap = ->
+    mapSize = 30 * 600
+    map = new Buffer mapSize
+    map.fill TILES.air
 
-    floor_height = floor_height + (-1 + Math.round Math.random() * 2)
-    if floor_height < 10
-      floor_height += 2
-    else if floor_height > 20
-      floor_height -= 2
+    floor_height = 20
+    for i in [0..600-30]
+        pos = 30*i
 
-    map.slice(pos+floor_height, pos+30).fill TILES.dirt
-  console.log 'Generated new map'
+        floor_height = floor_height + (-1 + Math.round Math.random() * 2)
+        if floor_height < 10
+            floor_height += 2
+        else if floor_height > 20
+            floor_height -= 2
 
-# Flush map to disk
-setInterval ->
-  fs.writeFile 'world.dat', map, (err) ->
-    console.log "Map saved to world.dat #{new Date}"
-, 1000 * 15
+    map.slice(pos+floor_height, pos+30).fill TILES.dirt    
+    console.log 'Generated new map'
 
+    return map
+
+# Save map to disk
+saveMap = (path) ->
+    fs.writeFile path, map, (err) ->
+        console.log "Map saved to #{path} #{new Date}"
+
+
+# Updates
+# -------
 changes = {}
 
 changeBlock = (block, type) ->
-  changes[block] = map[block] = type
+    changes[block] = map[block] = type
 
-# Bundle map updates
-setInterval ->
-  if Object.keys(changes).length > 0
-    matrix.emit 'change', changes
-    changes = {}
-, 300
+# Bundle map updates in a single message
+sendUpdates = ->
+    if Object.keys(changes).length > 0
+        matrix.emit 'change', changes
+        changes = {}
 
-# Expose API
-matrix = new EventEmitter
 
-_.extend matrix, 
-  getMap: ->
-    numpack.compact map, TILE_CODES
+# API
+# ---
+matrix = 
+    init: ->
+        map = loadMap('world.dat') ? generateMap()
 
-  put: (block) ->
-    changeBlock block, TILES.dirt
+        # Save map every 15 seconds
+        setInterval saveMap, 1000 * 15
 
-  del: (block) ->
-    changeBlock block, TILES.air
+        # Broadcast updates at 3 fps
+        setInterval sendUpdates, 1000 / 3
 
-### Test for server updates
-floating_rows = (Math.floor Math.random() * 100 for i in [0..50])
+    getMap: ->
+        numpack.compact map
 
-setInterval ->
-  row = floating_rows[Math.floor Math.random() * floating_rows.length]
-  cur = row * 30
-  limit = cur + 30
-  while map[cur] isnt TILES.dirt and cur < limit
-    cur += 1
+    put: (block) ->
+        changeBlock block, TILES.dirt
 
-  changes = {}
+    del: (block) ->
+        changeBlock block, TILES.air
 
-  if map[cur] is TILES.dirt
-    changes[cur]   = map[cur]   = TILES.air
-    changes[cur-1] = map[cur-1] = TILES.dirt
-
-    matrix.emit 'change', changes
-, 100
-###
+# Inherit from EventEmitter. This way we can
+# receive and broadcast map events without
+# interacting directly with the networking library
+util.inherits matrix, events.EventEmitter
 
 module.exports = matrix
-
-### TODO
-
-- receber updates só do que está no viewport
