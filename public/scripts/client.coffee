@@ -21,15 +21,6 @@ unless window.requestAnimationFrame?
     window.cancelAnimationFrame = (id) ->
         clearTimeout id
 
-TILES =
-  air  : 0
-  dirt : 10
-
-# Tile codes for inflating map data.
-TILE_CODES =
-    A: 0
-    D: 10
-
 # Our super-powerful de-compression algorithm.
 expand = (arr) ->
     output = []
