@@ -21,9 +21,9 @@ for image, src of IMAGES
     img.src = src
     IMAGES[image] = img
 
+
 # Game engine
 # -----------
-
 class GameEngine
 
     constructor: (root = document.body) ->
@@ -175,9 +175,9 @@ class Particle
         if @alpha <= 0
             Game.removeEntity @
 
+
 # Player
 # ------
-
 class Player
     constructor: (@name, @x = 0, @y = 0, @own) ->
         
@@ -299,6 +299,7 @@ PLAYER = new Player playerName, 3, 3, true
 PLAYER.bindKeys()
 Game.addPlayer PLAYER
 
+
 # Sockets
 # -------
 window.socket = io.connect()
@@ -337,9 +338,9 @@ setInterval ->
     ly = y
 , 1000/4
 
+
 # Player controls
 # ---------------
-
 pixelToBlock = (x, y) ->
     col = Math.floor x / Game.blockSize
     row = Math.floor y / Game.blockSize
