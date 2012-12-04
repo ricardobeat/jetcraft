@@ -10,7 +10,6 @@ TILES = require './tiles'
 
 # Map data
 # --------
-MAP = null
 
 # Load map file, returns a Buffer object
 loadMap = (path) ->
@@ -44,7 +43,7 @@ generateMap = ->
     return map
 
 # Save map to disk
-saveMap = (path) ->
+saveMap = (map, path) ->
     fs.writeFile path, map, (err) ->
         console.log "Map saved to #{path} #{new Date}"
 
@@ -54,7 +53,7 @@ saveMap = (path) ->
 changes = {}
 
 changeBlock = (block, type) ->
-    changes[block] = map[block] = type
+    changes[block] = matrix.map[block] = type
 
 # Bundle map updates in a single message
 sendUpdates = ->
@@ -65,28 +64,30 @@ sendUpdates = ->
 
 # API
 # ---
-matrix = 
-    init: ->
-        map = loadMap('world.dat') ? generateMap()
+# Inherit from EventEmitter. This way we can
+# receive and broadcast map events without
+# interacting directly with the networking library
+matrix = Object.create(events.EventEmitter.prototype)
+
+_.extend matrix,
+    init: (options) ->
+        @map = loadMap(options.map) ? generateMap()
 
         # Save map every 15 seconds
-        setInterval saveMap, 1000 * 15
+        setInterval =>
+            saveMap @map, options.map
+        , 1000 * 15
 
         # Broadcast updates at 3 fps
         setInterval sendUpdates, 1000 / 3
 
     getMap: ->
-        numpack.compact map
+        numpack.compact @map
 
     put: (block) ->
         changeBlock block, TILES.dirt
 
     del: (block) ->
         changeBlock block, TILES.air
-
-# Inherit from EventEmitter. This way we can
-# receive and broadcast map events without
-# interacting directly with the networking library
-util.inherits matrix, events.EventEmitter
 
 module.exports = matrix

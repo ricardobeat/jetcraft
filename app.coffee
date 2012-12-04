@@ -42,6 +42,8 @@ console.log "Express server listening on port %d", 8000
 # -----------
 matrix = require './lib/matrix'
 
+matrix.init { map: 'world.dat' }
+
 # Sockets
 # -------
 

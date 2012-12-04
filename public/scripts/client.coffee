@@ -306,7 +306,7 @@ window.socket = io.connect()
 
 socket.on 'world', (data) ->
     console.log 'Loading map...'
-    Game.map = expand data.map
+    Game.map = numpack.expand data.map
     Game.run()
 
 socket.on 'update', (data) ->
